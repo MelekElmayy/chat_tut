@@ -1,58 +1,78 @@
 import React, { useEffect, useState } from "react";
-import { userAuth } from "../utils/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../utils/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
 
 function LoginPage() {
-  const { user } = userAuth();
+  const { user, handleUserLogin } = useAuth();
   const navigate = useNavigate();
 
-  const [credentials, setcredentials] = useState({
+  const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
+
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (user) {
       navigate("/");
     }
-  }, [user, navigate]); // Added dependencies to useEffect
+  }, [user, navigate]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target; // Correctly get name and value
-    setcredentials({ ...credentials, [name]: value });
-    console.log("credentials", credentials);
+    const { name, value } = e.target;
+    setCredentials({ ...credentials, [name]: value });
   };
 
-  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await handleUserLogin(e, credentials);
+    } catch (error) {
+      setError(error.message || "Invalid email or password");
+    }
+  };
 
   return (
-    <div className="auth--continer">
+    <div className="auth--container">
       <div className="form--wrapper">
-        <form>
+        {error && <div className="error-message">{error}</div>}
+        <form onSubmit={handleSubmit}>
           <div className="field--wrapper">
-            <label>Email: </label>
-            <input
-              type="email"
+            <label>Email:</label>
+            <input 
               required
+              type="email"
               name="email"
-              placeholder="Enter Your email..."
+              placeholder="Enter your email..."
               value={credentials.email}
               onChange={handleInputChange}
             />
           </div>
 
           <div className="field--wrapper">
-            <label>Password: </label>
-            <input
-              type="password"
+            <label>Password:</label>
+            <input 
               required
-              name="password" // Fixed name attribute
-              placeholder="Enter Your password..."
+              type="password"
+              name="password"
+              placeholder="Enter password..."
               value={credentials.password}
               onChange={handleInputChange}
             />
           </div>
+
+          <div className="field--wrapper">
+            <input 
+              type="submit"
+              value="Login"
+              className="btn btn--lg btn--main"
+            />
+          </div>
         </form>
+
+        <p>Don't have an account ? Register <Link to='/register'>here</Link></p>
       </div>
     </div>
   );
